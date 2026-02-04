@@ -1,3 +1,9 @@
 # Afororo Backend Assignment (Round 2)
 
-Work in progress. This repo will include the full Django backend, APIs, seed data, Redis/Celery integration, Docker setup, tests, and documentation.
+## Celery
+Start the worker:
+```
+celery -A aforro_backend worker -l info
+```
+
+Tasks are triggered on successful order confirmation in `POST /orders/`.

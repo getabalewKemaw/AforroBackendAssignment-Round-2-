@@ -11,6 +11,7 @@ from apps.orders.serializers import (
     OrderDetailSerializer,
     OrderListSerializer,
 )
+from apps.orders.tasks import send_order_confirmation
 from apps.stores.models import Inventory
 
 
@@ -60,6 +61,7 @@ class OrderCreateView(APIView):
                 Inventory.objects.bulk_update(list(inventory_by_product.values()), ['quantity'])
                 order.status = Order.Status.CONFIRMED
                 order.save(update_fields=['status'])
+                send_order_confirmation.delay(order.id)
 
         order = Order.objects.prefetch_related('items__product').get(pk=order.pk)
         response_serializer = OrderDetailSerializer(order)

@@ -1,3 +1,5 @@
 Django==6.0.2
 djangorestframework==3.16.1
 Faker==30.8.2
+redis==5.0.8
+celery==5.4.0
