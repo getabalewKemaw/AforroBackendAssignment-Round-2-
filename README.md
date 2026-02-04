@@ -7,6 +7,7 @@ First create  A folder then open in vs code
 ...
 ```
 git clone https://github.com/getabalewKemaw/AforroBackendAssignment-Round-2-.git
+cd AforroBackendAssignment-Round-2-
 
 ```
 
