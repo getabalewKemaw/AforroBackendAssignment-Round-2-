@@ -1,7 +1,7 @@
 from django.db import models
 
-from products.models import Product
-from stores.models import Store
+from apps.products.models import Product
+from apps.stores.models import Store
 
 
 class Order(models.Model):

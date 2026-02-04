@@ -1,6 +1,6 @@
 from django.db import models
 
-from products.models import Product
+from apps.products.models import Product
 
 
 class Store(models.Model):
