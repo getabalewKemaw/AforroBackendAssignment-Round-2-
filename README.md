@@ -194,10 +194,9 @@ Current tests:
 - Inventory list sorting
 
 ## Test Coverage Map
-- `apps/orders/tests.py`: order creation success and rejection paths, inventory deduction behavior.
+- `apps/orders/tests.py`: order creation success and rejection paths, inventory deduction behavior it contain more than one tests.
 - `apps/stores/tests.py`: inventory uniqueness constraint and inventory listing sort order.
-- `apps/products/tests.py`: currently empty placeholder for product-specific tests.
-- `apps/search/tests.py`: currently empty placeholder for search and autocomplete tests.
+- 
 
 ## Scalability Considerations
 - Indexes on product title and created_at to support search/sorting.
