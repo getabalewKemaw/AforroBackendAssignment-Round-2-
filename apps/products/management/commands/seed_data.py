@@ -3,19 +3,20 @@ from decimal import Decimal
 
 from django.core.management.base import BaseCommand
 from django.db import transaction
+from faker import Faker
 
 from apps.products.models import Category, Product
 from apps.stores.models import Inventory, Store
 
 
 class Command(BaseCommand):
-    help = 'Seed small demo data for local testing.'
+    help = 'Seed data for the assignment requirements.'
 
     def add_arguments(self, parser):
-        parser.add_argument('--categories', type=int, default=5)
-        parser.add_argument('--products', type=int, default=50)
-        parser.add_argument('--stores', type=int, default=3)
-        parser.add_argument('--min-inventory-per-store', type=int, default=10)
+        parser.add_argument('--categories', type=int, default=10)
+        parser.add_argument('--products', type=int, default=1000)
+        parser.add_argument('--stores', type=int, default=20)
+        parser.add_argument('--min-inventory-per-store', type=int, default=300)
 
     def handle(self, *args, **options):
         categories_count = options['categories']
@@ -27,10 +28,13 @@ class Command(BaseCommand):
             self.stderr.write('Counts must be >= 1.')
             return
 
+        faker = Faker()
+
         with transaction.atomic():
             categories = []
-            for idx in range(categories_count):
-                category, _ = Category.objects.get_or_create(name=f'Category {idx + 1}')
+            for _ in range(categories_count):
+                name = faker.unique.word().title()
+                category, _ = Category.objects.get_or_create(name=name)
                 categories.append(category)
 
             existing_products = Product.objects.count()
@@ -39,9 +43,9 @@ class Command(BaseCommand):
             for idx in range(products_to_create):
                 new_products.append(
                     Product(
-                        title=f'Product {existing_products + idx + 1}',
-                        description=f'Description for product {existing_products + idx + 1}',
-                        price=Decimal(random.randrange(100, 5000)) / 100,
+                        title=faker.sentence(nb_words=3).rstrip('.'),
+                        description=faker.sentence(nb_words=10),
+                        price=Decimal(random.randrange(100, 20000)) / 100,
                         category=random.choice(categories),
                     )
                 )
@@ -51,10 +55,10 @@ class Command(BaseCommand):
             products = list(Product.objects.all())
 
             stores = []
-            for idx in range(stores_count):
+            for _ in range(stores_count):
                 store, _ = Store.objects.get_or_create(
-                    name=f'Store {idx + 1}',
-                    location=f'Location {idx + 1}',
+                    name=faker.company(),
+                    location=faker.city(),
                 )
                 stores.append(store)
 
@@ -66,7 +70,7 @@ class Command(BaseCommand):
                         Inventory(
                             store=store,
                             product=product,
-                            quantity=random.randint(1, 50),
+                            quantity=random.randint(1, 100),
                         )
                     )
 
