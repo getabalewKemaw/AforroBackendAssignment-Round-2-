@@ -58,6 +58,13 @@ python manage.py migrate
 python manage.py runserver
 ```
 
+## Django Admin (View Data)
+Create a superuser and log in to view data in the admin UI:
+```
+python manage.py createsuperuser
+```
+Then open `http://localhost:8000/admin/` and sign in.
+
 Run Redis locally (example using Docker):
 ```
 docker run --name aforro-redis -p 6379:6379 -d redis:7
