@@ -1,7 +1,8 @@
 from django.urls import path
 
-from apps.search.views import ProductSearchView
+from apps.search.views import ProductSearchView, ProductSuggestView
 
 urlpatterns = [
     path('api/search/products/', ProductSearchView.as_view(), name='product-search'),
+    path('api/search/suggest/', ProductSuggestView.as_view(), name='product-suggest'),
 ]

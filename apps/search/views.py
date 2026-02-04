@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.products.models import Product
-from apps.search.serializers import ProductSearchSerializer
+from apps.search.serializers import ProductSearchSerializer, ProductSuggestSerializer
 
 
 class ProductSearchView(APIView):
@@ -98,5 +98,36 @@ class ProductSearchView(APIView):
             'results': serializer.data,
         }
         return Response(response, status=status.HTTP_200_OK)
+
+
+class ProductSuggestView(APIView):
+    def get(self, request):
+        query = request.query_params.get('q', '').strip()
+        if len(query) < 3:
+            return Response(
+                {'detail': 'Query must be at least 3 characters.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        prefix_matches = (
+            Product.objects.filter(title__istartswith=query)
+            .order_by('title')
+            .values_list('title', flat=True)[:10]
+        )
+
+        remaining = 10 - len(prefix_matches)
+        if remaining > 0:
+            general_matches = (
+                Product.objects.filter(title__icontains=query)
+                .exclude(title__istartswith=query)
+                .order_by('title')
+                .values_list('title', flat=True)[:remaining]
+            )
+            results = list(prefix_matches) + list(general_matches)
+        else:
+            results = list(prefix_matches)
+
+        serializer = ProductSuggestSerializer({'results': results})
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 # Create your views here.
