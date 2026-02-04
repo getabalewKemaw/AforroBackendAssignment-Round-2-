@@ -211,4 +211,4 @@ Current tests:
 - `select_related` + aggregation to avoid N+1 queries.
 - Caching for read-heavy inventory listing.
 - Async tasks to keep request latency low.
-- Natural upgrade path to full-text search (Postgres), rate limiting, and horizontal scaling.
+- Natural upgrade path to full-text search (Postgres),and caching for perfomance .
