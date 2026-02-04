@@ -1,10 +1,16 @@
 from django.db import transaction
+from django.db.models import Sum
+from django.db.models.functions import Coalesce
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.orders.models import Order, OrderItem
-from apps.orders.serializers import OrderCreateSerializer, OrderDetailSerializer
+from apps.orders.serializers import (
+    OrderCreateSerializer,
+    OrderDetailSerializer,
+    OrderListSerializer,
+)
 from apps.stores.models import Inventory
 
 
@@ -58,5 +64,16 @@ class OrderCreateView(APIView):
         order = Order.objects.prefetch_related('items__product').get(pk=order.pk)
         response_serializer = OrderDetailSerializer(order)
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+
+
+class StoreOrderListView(APIView):
+    def get(self, request, store_id: int):
+        orders = (
+            Order.objects.filter(store_id=store_id)
+            .annotate(total_items=Coalesce(Sum('items__quantity_requested'), 0))
+            .order_by('-created_at')
+        )
+        data = OrderListSerializer(orders, many=True).data
+        return Response(data, status=status.HTTP_200_OK)
 
 # Create your views here.

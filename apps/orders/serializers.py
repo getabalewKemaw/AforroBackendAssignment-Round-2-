@@ -1,9 +1,7 @@
 from rest_framework import serializers
-
 from apps.orders.models import Order, OrderItem
 from apps.products.models import Product
 from apps.stores.models import Store
-
 
 class OrderItemInputSerializer(serializers.Serializer):
     product_id = serializers.IntegerField(min_value=1)
@@ -66,3 +64,11 @@ class OrderDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ('id', 'store_id', 'status', 'created_at', 'items')
+
+
+class OrderListSerializer(serializers.ModelSerializer):
+    total_items = serializers.IntegerField()
+
+    class Meta:
+        model = Order
+        fields = ('id', 'status', 'created_at', 'total_items')
