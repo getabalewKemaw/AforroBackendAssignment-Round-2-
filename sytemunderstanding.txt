@@ -1,0 +1,248 @@
+I’ll give you a clear mental model of the system, then a 10–15 hour execution plan, broken into real backend tasks, with what to code vs what to explain so you maximize your chance of selection.
+
+No panic. No overbuilding. Just clean, correct, explainable work.
+
+🧠 1. SYSTEM UNDERSTANDING (HIGH-LEVEL)
+
+Think of Aforro’s system as 3 core domains + 2 infrastructure layers.
+
+Core Domains
+
+Catalog
+
+Category
+
+Product
+
+Search & Autocomplete
+
+Store & Inventory
+
+Store
+
+Inventory (stock per store)
+
+Order Processing
+
+Order
+
+OrderItem
+
+Stock validation + deduction
+
+Infrastructure
+
+Performance
+
+Query optimization
+
+Redis caching
+
+Reliability & Ops
+
+Transactions
+
+Async processing (Celery)
+
+Dockerized environment
+
+If you keep this model in your head, everything makes sense.
+
+🧩 2. CORE FLOW (VERY IMPORTANT)
+Order Creation Flow (heart of the system)
+Request
+  ↓
+Validate store + products
+  ↓
+Check inventory (ALL items)
+  ↓
+IF any insufficient → REJECT
+ELSE → DEDUCT + CONFIRM
+  ↓
+Save Order + OrderItems (atomic)
+  ↓
+Trigger async task
+  ↓
+Return response
+
+
+This is where you prove you’re a backend engineer, not just a framework user.
+
+⏱️ 3. 10–15 HOUR EXECUTION PLAN (REALISTIC)
+
+We’ll divide this into 6 phases.
+
+🕐 PHASE 1 (1.5–2 hours)
+Project Setup & Models
+
+Goal: Strong foundation.
+
+Tasks
+
+Create Django project
+
+Create apps:
+
+products
+
+stores
+
+orders
+
+search
+
+Implement all models
+
+Add inventory uniqueness constraint
+
+Run migrations
+
+Register models in admin
+
+Deliverable
+
+✅ Models correct
+✅ Migrations clean
+
+👉 This already shows solid backend thinking.
+
+🕑 PHASE 2 (2.5–3 hours)
+Order Creation (MOST IMPORTANT)
+
+Goal: Nail correctness.
+
+Tasks
+
+POST /orders/
+
+Serializer for input validation
+
+Use transaction.atomic()
+
+Inventory checks
+
+Conditional stock deduction
+
+Order + OrderItem creation
+
+Return status + order details
+
+Must-haves
+
+No partial updates
+
+Clean error handling
+
+Clear logic (no magic)
+
+📌 This alone can carry your assignment.
+
+🕒 PHASE 3 (1.5–2 hours)
+Listing APIs + Optimization
+
+Goal: Show performance awareness.
+
+Tasks
+
+GET /stores/<id>/orders/
+
+Annotate total items
+
+Sort by newest
+
+No N+1
+
+GET /stores/<id>/inventory/
+
+select_related
+
+Sorted alphabetically
+
+Deliverable
+
+Efficient queries
+
+Clean responses
+
+🕓 PHASE 4 (2–2.5 hours)
+Search & Autocomplete
+
+Goal: Functional + explainable.
+
+Product Search
+
+Keyword search (icontains is fine)
+
+Filters (category, price, in_stock, store)
+
+Sorting
+
+Pagination
+
+Include inventory quantity if store_id given
+
+Autocomplete
+
+Minimum 3 chars
+
+Prefix matches first
+
+Limit 10 results
+
+📌 Keep logic simple. Explain trade-offs in README.
+
+🕔 PHASE 5 (2 hours)
+Redis + Celery
+
+Goal: Infrastructure competence.
+
+Redis (choose caching)
+
+Cache inventory OR search
+
+TTL = 60s
+
+Invalidate on stock update
+
+Celery
+
+Task: order confirmation
+
+Redis as broker
+
+Worker runs via docker-compose
+
+📌 Do NOT overbuild. One task is enough.
+
+🕕 PHASE 6 (1.5–2 hours)
+Docker, Seed Data, Tests, README
+
+Goal: Submission-ready.
+
+Tasks
+
+Dockerfile
+
+docker-compose.yml
+
+Seed data command (can reduce scale if needed)
+
+3–5 tests:
+
+Order success
+
+Order rejection
+
+Inventory uniqueness
+
+README:
+
+Setup
+
+APIs
+
+Caching
+
+Async
+
+Trade-offs
