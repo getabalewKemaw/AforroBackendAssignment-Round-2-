@@ -3,9 +3,11 @@
 This project implements the required backend module using Django and Django REST Framework. It covers the data models, transactional order creation, query-optimized listings, search and autocomplete, caching with Redis, Celery async tasks, a data seeder, and full Dockerization ,
 
 ## Clone Repository
+First create  A folder then open in vs code 
+...
 ```
 git clone https://github.com/getabalewKemaw/AforroBackendAssignment-Round-2-.git
-cd AforroBackendAssignment-Round-2-
+
 ```
 
 ## Tech Stack
