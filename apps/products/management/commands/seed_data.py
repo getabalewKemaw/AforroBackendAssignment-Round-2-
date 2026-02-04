@@ -11,7 +11,6 @@ from apps.stores.models import Inventory, Store
 
 class Command(BaseCommand):
     help = 'Seed data for the assignment requirements.'
-
     def add_arguments(self, parser):
         parser.add_argument('--categories', type=int, default=10)
         parser.add_argument('--products', type=int, default=1000)
@@ -76,5 +75,4 @@ class Command(BaseCommand):
 
             if inventory_rows:
                 Inventory.objects.bulk_create(inventory_rows, ignore_conflicts=True)
-
         self.stdout.write(self.style.SUCCESS('Seed data created.'))

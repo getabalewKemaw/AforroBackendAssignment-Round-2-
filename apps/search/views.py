@@ -4,11 +4,8 @@ from django.core.paginator import Paginator
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
 from apps.products.models import Product
 from apps.search.serializers import ProductSearchSerializer, ProductSuggestSerializer
-
-
 class ProductSearchView(APIView):
     def get(self, request):
         keyword = request.query_params.get('q', '').strip()
@@ -18,7 +15,6 @@ class ProductSearchView(APIView):
         store_id = request.query_params.get('store_id')
         in_stock = request.query_params.get('in_stock')
         sort = request.query_params.get('sort', 'relevance')
-
         products = Product.objects.select_related('category')
 
         if keyword:
@@ -114,7 +110,6 @@ class ProductSuggestView(APIView):
             .order_by('title')
             .values_list('title', flat=True)[:10]
         )
-
         remaining = 10 - len(prefix_matches)
         if remaining > 0:
             general_matches = (
@@ -130,4 +125,3 @@ class ProductSuggestView(APIView):
         serializer = ProductSuggestSerializer({'results': results})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-# Create your views here.

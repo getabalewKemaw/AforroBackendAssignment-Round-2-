@@ -13,17 +13,13 @@ from apps.orders.serializers import (
 )
 from apps.orders.tasks import send_order_confirmation
 from apps.stores.models import Inventory
-
-
 class OrderCreateView(APIView):
     def post(self, request):
         serializer = OrderCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         store = serializer.validated_data['store']
         items_data = serializer.validated_data['items']
-
         product_ids = [item['product'].id for item in items_data]
-
         with transaction.atomic():
             inventory_qs = (
                 Inventory.objects.select_for_update()
@@ -31,14 +27,12 @@ class OrderCreateView(APIView):
                 .select_related('product')
             )
             inventory_by_product = {inv.product_id: inv for inv in inventory_qs}
-
             insufficient = False
             for item in items_data:
                 inv = inventory_by_product.get(item['product'].id)
                 if inv is None or inv.quantity < item['quantity_requested']:
                     insufficient = True
                     break
-
             order = Order.objects.create(store=store, status=Order.Status.PENDING)
             OrderItem.objects.bulk_create(
                 [
@@ -50,7 +44,6 @@ class OrderCreateView(APIView):
                     for item in items_data
                 ]
             )
-
             if insufficient:
                 order.status = Order.Status.REJECTED
                 order.save(update_fields=['status'])
@@ -67,7 +60,6 @@ class OrderCreateView(APIView):
         response_serializer = OrderDetailSerializer(order)
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
-
 class StoreOrderListView(APIView):
     def get(self, request, store_id: int):
         orders = (
@@ -77,5 +69,3 @@ class StoreOrderListView(APIView):
         )
         data = OrderListSerializer(orders, many=True).data
         return Response(data, status=status.HTTP_200_OK)
-
-# Create your views here.

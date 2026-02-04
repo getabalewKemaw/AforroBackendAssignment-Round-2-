@@ -22,3 +22,7 @@ class ProductSearchSerializer(serializers.ModelSerializer):
 
 class ProductSuggestSerializer(serializers.Serializer):
     results = serializers.ListField(child=serializers.CharField(), max_length=10)
+
+
+
+#  test the serialzers

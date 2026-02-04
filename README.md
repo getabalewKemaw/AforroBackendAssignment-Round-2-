@@ -1,6 +1,12 @@
 # Afororo Backend Assignment (Round 2)
 
-Small but complete Django backend module demonstrating data modeling, REST APIs, caching, async processing, and Dockerized development.
+This project implements the required backend module using Django and Django REST Framework. It covers the data models, transactional order creation, query-optimized listings, search and autocomplete, caching with Redis, Celery async tasks, a data seeder, and full Dockerization ,
+
+## Clone Repository
+```
+git clone https://github.com/getabalewKemaw/AforroBackendAssignment-Round-2-.git
+cd AforroBackendAssignment-Round-2-
+```
 
 ## Tech Stack
 - Django + Django REST Framework
@@ -8,7 +14,42 @@ Small but complete Django backend module demonstrating data modeling, REST APIs,
 - Redis (cache + Celery broker)
 - Celery
 
-## Local Setup
+## Project Structure
+- `apps/products`: Category + Product models and seed command
+- `apps/stores`: Store + Inventory models, inventory listing, caching + invalidation
+- `apps/orders`: Order creation, order items, order listing, async confirmation task
+- `apps/search`: Product search and autocomplete endpoints
+- `aforro_backend`: project settings, URLs, Celery configuration
+
+## Folder Structure (including tests)
+```
+aforro_backend/
+  settings.py
+  urls.py
+  celery.py
+apps/
+  products/
+    models.py
+    tests.py
+    management/commands/seed_data.py
+  stores/
+    models.py
+    tests.py
+    views.py
+    signals.py
+  orders/
+    models.py
+    tests.py
+    views.py
+    tasks.py
+  search/
+    views.py
+    tests.py
+tests/
+  __init__.py
+```
+
+## Quick Start (Local)
 ```
 python -m pip install -r requirements.txt
 python manage.py migrate
@@ -25,7 +66,7 @@ Run Celery worker:
 celery -A aforro_backend worker -l info
 ```
 
-Seed data:
+Seed data (creates 10+ categories, 1000+ products, 20+ stores, 300+ inventory items per store):
 ```
 python manage.py seed_data
 ```
@@ -41,6 +82,11 @@ Optional seed:
 docker compose exec web python manage.py seed_data
 ```
 
+## Environment Notes
+- Local dev defaults to SQLite when `POSTGRES_DB` is not set.
+- Docker uses PostgreSQL, Redis, and Celery via `docker-compose.yml`.
+- Redis is used for caching and as the Celery broker.
+
 ## API Endpoints
 - `POST /orders/`
 - `GET /stores/<store_id>/orders/`
@@ -48,9 +94,17 @@ docker compose exec web python manage.py seed_data
 - `GET /api/search/products/`
 - `GET /api/search/suggest/?q=xxx`
 
-## Sample Requests
-Create order:
-```
+## Order Flow (POST /orders/)
+Behavior:
+- Validates the store and products.
+- Checks inventory for each requested product.
+- All operations run in a single `transaction.atomic()` block.
+- If any item is insufficient, order is `REJECTED` and inventory is unchanged.
+- If all items are sufficient, inventory is deducted and order is `CONFIRMED`.
+- On success, a Celery task is triggered to send a confirmation.
+
+Example:
+```bash
 curl -X POST http://localhost:8000/orders/ \
   -H "Content-Type: application/json" \
   -d '{
@@ -62,34 +116,65 @@ curl -X POST http://localhost:8000/orders/ \
   }'
 ```
 
-List store orders:
-```
+## Orders Listing (GET /stores/<store_id>/orders/)
+Returns:
+- order id
+- status
+- created_at
+- total number of items
+
+Sorted newest first. Efficient aggregation prevents N+1 queries.
+
+Example:
+```bash
 curl http://localhost:8000/stores/1/orders/
 ```
 
-List store inventory:
-```
+## Inventory Listing (GET /stores/<store_id>/inventory/)
+Returns:
+- product title
+- price
+- category name
+- quantity
+
+Sorted alphabetically by product title.
+
+Example:
+```bash
 curl http://localhost:8000/stores/1/inventory/
 ```
 
-Search products:
-```
+## Product Search (GET /api/search/products/)
+Features:
+- Keyword search on title, description, and category name
+- Filters: `category`, `min_price`, `max_price`, `store_id`, `in_stock`
+- Sorting: `price`, `newest`, `relevance`
+- Pagination: `page`, `page_size`
+- If `store_id` is provided, `inventory_quantity` is included per product
+
+Example:
+```bash
 curl "http://localhost:8000/api/search/products/?q=milk&sort=relevance&page=1&page_size=10"
 ```
 
-Autocomplete:
-```
+## Autocomplete (GET /api/search/suggest/?q=xxx)
+Rules:
+- Minimum 3 characters
+- Returns up to 10 product titles
+- Prefix matches appear before general matches
+
+Example:
+```bash
 curl "http://localhost:8000/api/search/suggest/?q=mil"
 ```
 
-## Caching
-Inventory listing (`GET /stores/<store_id>/inventory/`) is cached for 60 seconds using Redis.
-Cache is invalidated automatically when inventory rows change.
+## Caching (Redis)
+Inventory listing (`GET /stores/<store_id>/inventory/`) is cached for 60 seconds.
+Cache is invalidated automatically on inventory create/update/delete.
 
-## Async Processing
-Celery task `send_order_confirmation` is triggered on successful order confirmation.
-
-Run worker:
+## Async Processing (Celery)
+Celery task `send_order_confirmation` is triggered after a confirmed order.
+Worker command:
 ```
 celery -A aforro_backend worker -l info
 ```
@@ -100,15 +185,21 @@ Run tests:
 python manage.py test
 ```
 
-Included tests:
+Current tests:
 - Order confirmation deducts stock
 - Order rejection leaves stock unchanged
 - Inventory uniqueness constraint
 - Inventory list sorting
 
+## Test Coverage Map
+- `apps/orders/tests.py`: order creation success and rejection paths, inventory deduction behavior.
+- `apps/stores/tests.py`: inventory uniqueness constraint and inventory listing sort order.
+- `apps/products/tests.py`: currently empty placeholder for product-specific tests.
+- `apps/search/tests.py`: currently empty placeholder for search and autocomplete tests.
+
 ## Scalability Considerations
-- Indexes on product title and created time to support search and sorting.
-- Use `select_related` and `annotate` to avoid N+1 queries.
-- Caching for read-heavy inventory endpoint.
-- Async tasks for non-blocking workflows (e.g., notifications).
-- For larger scale: full-text search (Postgres), background indexing, rate limiting, and horizontal scaling via containers.
+- Indexes on product title and created_at to support search/sorting.
+- `select_related` + aggregation to avoid N+1 queries.
+- Caching for read-heavy inventory listing.
+- Async tasks to keep request latency low.
+- Natural upgrade path to full-text search (Postgres), rate limiting, and horizontal scaling.
