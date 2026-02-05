@@ -1,8 +1,6 @@
 from rest_framework import serializers
 
 from apps.products.models import Product
-
-
 class ProductSearchSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source='category.name')
     inventory_quantity = serializers.IntegerField(required=False)
@@ -25,4 +23,4 @@ class ProductSuggestSerializer(serializers.Serializer):
 
 
 
-#  test the serialzers
+

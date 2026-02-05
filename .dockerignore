@@ -1,0 +1,28 @@
+# Python junk
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Environment and secrets
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Database (we use the Docker volume instead)
+*.sqlite3
+db.sqlite3
+
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile
+docker-compose.yml
+
+# Media/Static (if handled by volumes)
+media/
+staticfiles/

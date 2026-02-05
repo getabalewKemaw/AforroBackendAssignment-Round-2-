@@ -3,6 +3,8 @@ from apps.orders.models import Order, OrderItem
 from apps.products.models import Product
 from apps.stores.models import Store
 
+
+#This serializer is used only for validating incoming request data, not for persistence.
 class OrderItemInputSerializer(serializers.Serializer):
     product_id = serializers.IntegerField(min_value=1)
     quantity_requested = serializers.IntegerField(min_value=1)
@@ -19,6 +21,12 @@ class OrderCreateSerializer(serializers.Serializer):
         except Store.DoesNotExist:
             raise serializers.ValidationError({'store_id': 'Store not found.'})
         product_quantities = {}
+        # merge the duplicate products
+        """       [
+        {"product_id": 1, "quantity_requested": 2},
+        {"product_id": 1, "quantity_requested": 3}
+                ] """
+        #  normalize the input data to enforce uniqueness at the application layer
         for item in attrs['items']:
             product_quantities[item['product_id']] = (
                 product_quantities.get(item['product_id'], 0) + item['quantity_requested']
@@ -28,8 +36,9 @@ class OrderCreateSerializer(serializers.Serializer):
         products = Product.objects.filter(id__in=product_ids)
         if products.count() != len(product_ids):
             raise serializers.ValidationError({'items': 'One or more products are invalid.'})
-
+        #convert query results into a lookup map for efficient access.
         product_map = {product.id: product for product in products}
+        #prepares clean, validated, DB-ready data.
         items = [
             {
                 'product': product_map[product_id],
@@ -37,7 +46,6 @@ class OrderCreateSerializer(serializers.Serializer):
             }
             for product_id, quantity in product_quantities.items()
         ]
-
         return {
             'store': store,
             'items': items,

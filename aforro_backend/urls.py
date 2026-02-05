@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.urls import include, path
 from django.http import JsonResponse
+
+from rest_framework.response import Response
 def root_view(request):
     return JsonResponse(
         {

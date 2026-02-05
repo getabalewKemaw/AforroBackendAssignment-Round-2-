@@ -1,9 +1,7 @@
 from rest_framework.test import APITestCase
-
 from apps.orders.models import Order
 from apps.products.models import Category, Product
 from apps.stores.models import Inventory, Store
-
 
 class OrderCreationTests(APITestCase):
     def setUp(self):

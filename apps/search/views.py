@@ -15,7 +15,8 @@ class ProductSearchView(APIView):
         store_id = request.query_params.get('store_id')
         in_stock = request.query_params.get('in_stock')
         sort = request.query_params.get('sort', 'relevance')
-        products = Product.objects.select_related('category')
+        #Base Query & Optimization->
+        products = Product.objects.select_related('category')#with out these if u had a 20 products django would hit the database 21 times,that is n+1 problem now it is once .
 
         if keyword:
             products = products.filter(
@@ -41,9 +42,9 @@ class ProductSearchView(APIView):
                 products = products.filter(price__lte=max_price)
             except ValueError:
                 return Response({'detail': 'Invalid max_price.'}, status=status.HTTP_400_BAD_REQUEST)
-
         if store_id:
             products = products.filter(inventory_items__store_id=store_id)
+            #add a  temprary filed to every product(Inventory quantiity)
             products = products.annotate(
                 inventory_quantity=Coalesce(F('inventory_items__quantity'), Value(0))
             )
@@ -61,6 +62,7 @@ class ProductSearchView(APIView):
             products = products.order_by('-created_at', 'id')
         else:
             if keyword:
+                #the relevance and the score logics
                 products = products.annotate(
                     relevance=Coalesce(
                         Sum(
