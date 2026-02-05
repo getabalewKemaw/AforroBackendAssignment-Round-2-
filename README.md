@@ -7,6 +7,7 @@ First create  A folder then open in vs code
 ...
 ```
 git clone https://github.com/getabalewKemaw/AforroBackendAssignment-Round-2-.git
+cd AforroBackendAssignment-Round-2-
 
 ```
 
@@ -65,7 +66,7 @@ python manage.py createsuperuser
 ```
 Then open `http://localhost:8000/admin/` and sign in.
 
-Run Redis locally (example using Docker):
+Run Redis locally (example using Docker):NB- run the docker desktop,
 ```
 docker run --name aforro-redis -p 6379:6379 -d redis:7
 ```
@@ -80,7 +81,7 @@ Seed data (creates 10+ categories, 1000+ products, 20+ stores, 300+ inventory it
 python manage.py seed_data
 ```
 
-## Docker Setup
+## Docker Setup NB-run the docker desktop
 ```
 docker compose up --build
 docker compose exec web python manage.py migrate
@@ -112,7 +113,7 @@ Behavior:
 - If all items are sufficient, inventory is deducted and order is `CONFIRMED`.
 - On success, a Celery task is triggered to send a confirmation.
 
-Example:
+Example: You can test these api in the Postman
 ```bash
 curl -X POST http://localhost:8000/orders/ \
   -H "Content-Type: application/json" \
@@ -210,4 +211,4 @@ Current tests:
 - `select_related` + aggregation to avoid N+1 queries.
 - Caching for read-heavy inventory listing.
 - Async tasks to keep request latency low.
-- Natural upgrade path to full-text search (Postgres), rate limiting, and horizontal scaling.
+- Natural upgrade path to full-text search (Postgres),and caching for perfomance .
